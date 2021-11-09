@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 from rest_framework import status
 from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
-from rest_framework.serializers import ModelSerializer
+from rest_framework.serializers import ModelSerializer, BooleanField, CharField
 from django.contrib.auth.models import User
 from rest_framework.decorators import action
 from levelupapi.models import Gamer, Game, Event
@@ -27,10 +27,13 @@ class EventView(ViewSet):
             return Response({'message': ex.args[0]}, status=status.HTTP_400_BAD_REQUEST)
 
     def list(self, request):
+        gamer = Gamer.objects.get(user=request.auth.user)
         events = Event.objects.all()
+        for event in events:
+            event.joined = gamer in event.attendees.all()
         events_serializer = EventSerializer(events, many=True)
         return Response(events_serializer.data)
-    
+
     def retrieve(self, request, pk):
         event = Event.objects.get(pk=pk)
         event_serializer = EventSerializer(event, context={'request': request})
@@ -86,8 +89,8 @@ class GamerSerializer(ModelSerializer):
 
 class EventSerializer(ModelSerializer):
     organizer = GamerSerializer()
-
+    joined = BooleanField(required=False)
     class Meta:
         model = Event
-        fields = ['id', 'organizer', 'game', 'date', 'time', 'description', 'attendees']
+        fields = ['id', 'organizer', 'game', 'date', 'time', 'description', 'attendees', 'joined']
         depth = 2
