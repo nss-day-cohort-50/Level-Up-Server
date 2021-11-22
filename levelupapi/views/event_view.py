@@ -35,9 +35,12 @@ class EventView(ViewSet):
         return Response(events_serializer.data)
 
     def retrieve(self, request, pk):
-        event = Event.objects.get(pk=pk)
-        event_serializer = EventSerializer(event, context={'request': request})
-        return Response(event_serializer.data)
+        try:
+            event = Event.objects.get(pk=pk)
+            event_serializer = EventSerializer(event, context={'request': request})
+            return Response(event_serializer.data)
+        except Event.DoesNotExist as ex:
+            return Response({'message', 'Event not found'}, status=status.HTTP_404_NOT_FOUND)
 
     def destroy(self, request, pk):
         event = Event.objects.get(pk=pk)
@@ -84,7 +87,7 @@ class GamerSerializer(ModelSerializer):
 
     class Meta:
         model = Gamer
-        fields = ['user']
+        fields = ['user', 'id']
 
 
 class EventSerializer(ModelSerializer):
