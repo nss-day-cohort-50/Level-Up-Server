@@ -34,5 +34,6 @@ urlpatterns = [
     path('login', login_user),
     path('register', register_user),
     path('profile', user_profile),
-    path('', include(router.urls))
+    path('', include(router.urls)),
+    path('', include('levelupreports.urls'))
 ]
